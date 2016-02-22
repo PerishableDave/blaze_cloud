@@ -1,0 +1,2 @@
+defmodule BlazeCloud do
+end
