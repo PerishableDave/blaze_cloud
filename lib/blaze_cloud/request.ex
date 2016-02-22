@@ -89,8 +89,17 @@ defmodule BlazeCloud.Request do
 
   end
 
-  def list_file_names() do
+  @spec list_file_names(Auth.t) :: {:ok, [BlazeFile.t], String.t} | {:error, binary}
+  def list_file_names(auth, bucket_id, next_file \\ nil) do
+    url = endpoint_url(auth, "b2_list_file_names")
+    params = %{bucketId: bucket_id}
+    body = Poison.encode!(params)
+    headers = put_header_token([], auth)
 
+    with {:ok, response} <- HTTPoison.post(url, body, headers),
+         {:ok, json} <- parse_response(response),
+         files <- Enum.map(json["files"], &(BlazeFile.from_json(&1))),
+         do: {:ok, files, json["nextFileName"]}
   end
 
   def list_file_versions() do
@@ -133,6 +142,8 @@ defmodule BlazeCloud.Request do
   def upload_part() do
 
   end
+
+  # Utility
 
   defp put_header_token(headers, auth) do
     headers ++ [{"Authorization", auth.token}]

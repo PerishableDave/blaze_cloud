@@ -67,6 +67,20 @@ defmodule BlazeCloud.RequestTest do
     end
   end
 
+  @list_file_bucket_id "1234"
+  @list_file_names_json "{\"files\":[{\"action\":\"upload\",\"fileId\":\"4_z27c88f1d182b150646ff0b16_f1004ba650fe24e6b_d20150809_m012853_c100_v0009990_t0000\",\"fileName\":\"files/hello.txt\",\"size\":6,\"uploadTimestamp\":1439083733000},{\"action\":\"upload\",\"fileId\":\"4_z27c88f1d182b150646ff0b16_f1004ba650fe24e6c_d20150809_m012854_c100_v0009990_t0000\",\"fileName\":\"files/world.txt\",\"size\":6,\"uploadTimestamp\":1439083734000}],\"nextFileName\":\"someName\"}"
+  test "get file names returns files and a next token" do
+    with_mock HTTPoison, [post: fn (url, body, headers) ->
+      assert url == @api_url <> "/b2api/v1/b2_list_file_names"
+      assert_header headers, "Authorization", @token
+      build_result(@list_file_names_json)
+    end] do
+      {:ok, files, next_file} = Request.list_file_names(@auth, @list_file_bucket_id)
+      assert length(files) == 2
+      assert next_file == "someName"
+    end
+  end
+
   @get_upload_url_bucket "1234"
   @get_upload_json "{\"bucketId\":\"4a48fe8875c6214145260818\",\"uploadUrl\":\"https://pod-000-1005-03.backblaze.com/b2api/v1/b2_upload_file?cvt=c001_v0001005_t0027&bucket=4a48fe8875c6214145260818\",\"authorizationToken\":\"2_20151009170037_f504a0f39a0f4e657337e624_9754dde94359bd7b8f1445c8f4cc1a231a33f714_upld\"}"
   test "get upload url return an upload token" do
