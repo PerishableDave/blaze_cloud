@@ -54,6 +54,24 @@ defmodule BlazeCloud.RequestTest do
     end
   end
 
+  @delete_bucket_json "{\"bucketId\":\"1234\",\"accountId\":\"#{@account_id}\",\"bucketName\":\"any_name_you_pick\",\"bucketType\":\"allPrivate\"}"
+  test "delete bucket returns the deleted bucket" do
+    bucket_id = "1234"
+    with_mock HTTPoison, [post: fn (url, body, headers) ->
+        assert @api_url <> "b2api/v1/b2_delete_bucket"
+        assert_header headers, "Authorization", @token
+        parsed_body = Poison.decode!(body)
+        assert parsed_body["accountId"] == @account_id
+        assert parsed_body["bucketId"] == bucket_id
+        build_result(@delete_bucket_json)
+    end] do
+      {:ok, bucket} = Request.delete_bucket(@auth, bucket_id)
+
+      assert bucket.bucket_id == bucket_id
+      assert bucket.account_id == @account_id
+    end
+  end
+
   @list_buckets_json "{\"buckets\":[{\"bucketId\":\"4a48fe8875c6214145260818\",\"accountId\":\"30f20426f0b1\",\"bucketName\":\"Kitten Videos\",\"bucketType\":\"allPrivate\"},{\"bucketId\":\"5b232e8875c6214145260818\",\"accountId\":\"30f20426f0b1\",\"bucketName\":\"Puppy Videos\",\"bucketType\":\"allPublic\"},{\"bucketId\":\"87ba238875c6214145260818\",\"accountId\":\"30f20426f0b1\",\"bucketName\":\"Vacation Pictures\",\"bucketType\":\"allPrivate\"}]}"
   test "list buckets returns a lit of buckets" do
     with_mock HTTPoison, [get: fn (url, headers) ->

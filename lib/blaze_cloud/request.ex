@@ -38,8 +38,16 @@ defmodule BlazeCloud.Request do
   defp create_bucket_type(:private), do: "allPrivate"
   defp create_bucket_type(:public), do: "allPublic"
 
-  def delete_bucket(auth, account_id, bucket_id) do
+  def delete_bucket(auth, bucket_id) do
+    url = endpoint_url auth, "b2_delete_bucket"
+    headers = put_header_token [], auth
+    body = Poison.encode!(%{
+      "accountId" => auth.account_id,
+      "bucketId" => bucket_id})
 
+    with {:ok, response} <- HTTPoison.post(url, body, headers),
+         {:ok, json} <- parse_response(response),
+         do: {:ok, Bucket.from_json(json)}
   end
 
   def delete_file_version(auth, file_name, file_id) do
@@ -89,7 +97,7 @@ defmodule BlazeCloud.Request do
 
   end
 
-  @spec list_file_names(Auth.t) :: {:ok, [BlazeFile.t], String.t} | {:error, binary}
+  @spec list_file_names(Auth.t, String.t, String.t | nil) :: {:ok, [BlazeFile.t], String.t} | {:error, binary}
   def list_file_names(auth, bucket_id, next_file \\ nil) do
     url = endpoint_url(auth, "b2_list_file_names")
     params = %{bucketId: bucket_id}
