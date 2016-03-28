@@ -1,6 +1,7 @@
 # BlazeCloud
 
-**TODO: Add description**
+Elixir Library for Backblaze B2 Cloud Storage.
+
 
 ## Installation
 
