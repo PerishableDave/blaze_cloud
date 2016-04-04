@@ -17,9 +17,10 @@ defmodule BlazeCloud.Request do
          do: {:ok, Auth.from_json(json)}
   end
 
-  def cancel_large_file(auth, file_id) do
-
-  end
+  # TODO
+  # def cancel_large_file(auth, file_id) do
+  # 
+  # end
 
   @spec create_bucket(Auth.t, String.t, :private | :public) :: {:ok, Bucket.t} | {:error, String.t}
   def create_bucket(auth, bucket_name, bucket_type \\ :private) do
@@ -62,17 +63,20 @@ defmodule BlazeCloud.Request do
          do: {:ok, BlazeFile.from_json(json)}
   end
 
-  def download_file(auth, file_id, range \\ []) do
+  # TODO
+  # def download_file(auth, file_id, range \\ []) do
+  #
+  # end
 
-  end
+  # TODO
+  # def download_file_named(auth, filename, range \\ []) do
+  #
+  # end
 
-  def download_file_named(auth, filename, range \\ []) do
-
-  end
-
-  def finish_large_file() do
-
-  end
+  # TODO
+  # def finish_large_file() do
+  #
+  # end
 
   @spec get_file_info(Auth.t, String.t) :: {:ok, BlazeFile.t} | {:error, String.t}
   def get_file_info(auth, file_id) do
@@ -96,8 +100,15 @@ defmodule BlazeCloud.Request do
          do: {:ok, UploadToken.from_json(json)}
   end
 
-  def hide_file() do
+  @spec hide_file(Auth.t, String.t, String.t) :: {:ok, BlazeFile.t} | {:error, String.t}
+  def hide_file(auth, bucket_id, file_name) do
+    url = endpoint_url(auth, "b2_hide_file")
+    body = Poison.encode!(%{"bucketId" => bucket_id, "fileName" => file_name})
+    headers = put_header_token([], auth)
 
+    with {:ok, response} <- HTTPoison.post(url, body, headers),
+         {:ok, json} <- parse_response(response),
+         do: {:ok, BlazeFile.from_json(json)}
   end
 
   @spec list_buckets(Auth.t) :: {:ok, [Bucket.t]} | {:error, binary}
@@ -112,8 +123,8 @@ defmodule BlazeCloud.Request do
 
   end
 
-  @spec list_file_names(Auth.t, String.t, String.t | nil) :: {:ok, [BlazeFile.t], String.t} | {:error, binary}
-  def list_file_names(auth, bucket_id, next_file \\ nil) do
+  @spec list_file_names(Auth.t, String.t, list) :: {:ok, [BlazeFile.t], String.t} | {:error, binary}
+  def list_file_names(auth, bucket_id, opts \\ []) do
     url = endpoint_url(auth, "b2_list_file_names")
     params = %{bucketId: bucket_id}
     body = Poison.encode!(params)
@@ -125,21 +136,24 @@ defmodule BlazeCloud.Request do
          do: {:ok, files, json["nextFileName"]}
   end
 
-  def list_file_versions() do
+  def list_file_versions(auth, bucket_id, next_file \\ nil) do
 
   end
 
-  def list_parts() do
+  # TODO
+  # def list_parts() do
+  #
+  # end
 
-  end
+  # TODO
+  # def list_unfinished_large_files() do
+  #
+  # end
 
-  def list_unfinished_large_files() do
-
-  end
-
-  def start_large_file() do
-
-  end
+  # TODO
+  # def start_large_file() do
+  #
+  # end
 
   def update_bucket() do
 
@@ -162,9 +176,10 @@ defmodule BlazeCloud.Request do
          do: BlazeFile.from_json(json)
   end
 
-  def upload_part() do
-
-  end
+  # TODO
+  # def upload_part() do
+  #
+  # end
 
   # Utility
 

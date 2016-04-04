@@ -106,7 +106,25 @@ defmodule BlazeCloud.RequestTest do
       assert file.file_id == file_id
       assert file.file_name == "akitty.jpg"
     end
+  end
 
+  @hide_file_json "{\"action\":\"hide\",\"fileId\":\"1234\",\"fileName\":\"some_file\",\"uploadTimestamp\":1437815673000}"
+  test "hide file returns blaze file" do
+    bucket_id = "1234"
+    file_name = "some_file"
+    with_mock HTTPoison, [post: fn (url, body, headers) ->
+      assert @api_url <> "b2api/v1/b2_hide_file"
+      assert_header headers, "Authorization", @token
+      parsed_body = Poison.decode!(body)
+      assert parsed_body["fileName"] == file_name
+      assert parsed_body["bucketId"] == bucket_id
+      build_result(@hide_file_json)
+    end] do
+      {:ok, file} = Request.hide_file(@auth, bucket_id, file_name)
+
+      assert file.file_name == file_name
+      assert file.action == "hide"
+    end
   end
 
   @list_buckets_json "{\"buckets\":[{\"bucketId\":\"4a48fe8875c6214145260818\",\"accountId\":\"30f20426f0b1\",\"bucketName\":\"Kitten Videos\",\"bucketType\":\"allPrivate\"},{\"bucketId\":\"5b232e8875c6214145260818\",\"accountId\":\"30f20426f0b1\",\"bucketName\":\"Puppy Videos\",\"bucketType\":\"allPublic\"},{\"bucketId\":\"87ba238875c6214145260818\",\"accountId\":\"30f20426f0b1\",\"bucketName\":\"Vacation Pictures\",\"bucketType\":\"allPrivate\"}]}"
