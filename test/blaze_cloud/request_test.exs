@@ -84,11 +84,29 @@ defmodule BlazeCloud.RequestTest do
       assert parsed_body["fileId"] == file_id
       build_result(@delete_file_version_json)
     end] do
-      {:ok, json} = Request.delete_file_version(@auth, file_name, file_id)
+      {:ok, file} = Request.delete_file_version(@auth, file_name, file_id)
 
-      assert json["file_id"] == file_id
-      assert json["file_name"] == file_name
+      assert file.file_id == file_id
+      assert file.file_name == file_name
     end
+  end
+
+  @get_file_info_json "{\"accountId\":\"7eecc42b9675\",\"bucketId\":\"e73ede9c9c8412db49f60715\",\"contentLength\":122573,\"contentSha1\":\"a01a21253a07fb08a354acd30f3a6f32abb76821\",\"contentType\":\"image/jpeg\",\"fileId\":\"1234\",\"fileInfo\":{},\"fileName\":\"akitty.jpg\"}"
+  test "get file info returns blaze file" do
+    file_id = "1234"
+    with_mock HTTPoison, [post: fn (url, body, headers) ->
+      assert @api_url <> "b2api/v1/b2_get_file_info"
+      assert_header headers, "Authorization", @token
+      parsed_body = Poison.decode!(body)
+      assert parsed_body["fileId"] == file_id
+      build_result(@get_file_info_json)
+    end] do
+      {:ok, file} = Request.get_file_info(@auth, file_id)
+
+      assert file.file_id == file_id
+      assert file.file_name == "akitty.jpg"
+    end
+
   end
 
   @list_buckets_json "{\"buckets\":[{\"bucketId\":\"4a48fe8875c6214145260818\",\"accountId\":\"30f20426f0b1\",\"bucketName\":\"Kitten Videos\",\"bucketType\":\"allPrivate\"},{\"bucketId\":\"5b232e8875c6214145260818\",\"accountId\":\"30f20426f0b1\",\"bucketName\":\"Puppy Videos\",\"bucketType\":\"allPublic\"},{\"bucketId\":\"87ba238875c6214145260818\",\"accountId\":\"30f20426f0b1\",\"bucketName\":\"Vacation Pictures\",\"bucketType\":\"allPrivate\"}]}"

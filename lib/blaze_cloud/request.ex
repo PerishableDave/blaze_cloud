@@ -21,6 +21,7 @@ defmodule BlazeCloud.Request do
 
   end
 
+  @spec create_bucket(Auth.t, String.t, :private | :public) :: {:ok, Bucket.t} | {:error, String.t}
   def create_bucket(auth, bucket_name, bucket_type \\ :private) do
     type = create_bucket_type(bucket_type)
     url = endpoint_url(auth, "b2_create_bucket")
@@ -34,10 +35,8 @@ defmodule BlazeCloud.Request do
          {:ok, json} <- parse_response(response),
          do: {:ok, Bucket.from_json(json)}
   end
-
-  defp create_bucket_type(:private), do: "allPrivate"
-  defp create_bucket_type(:public), do: "allPublic"
-
+  
+  @spec delete_bucket(Auth.t, String.t) :: {:ok, Bucket.t} | {:error, String.t}
   def delete_bucket(auth, bucket_id) do
     url = endpoint_url auth, "b2_delete_bucket"
     headers = put_header_token [], auth
@@ -50,6 +49,7 @@ defmodule BlazeCloud.Request do
          do: {:ok, Bucket.from_json(json)}
   end
 
+  @spec delete_file_version(Auth.t, String.t, String.t) :: {:ok, BlazeFile.t} | {:error, String.t}
   def delete_file_version(auth, file_name, file_id) do
     url = endpoint_url auth, "b2_delete_file_version"
     headers = put_header_token [], auth
@@ -59,7 +59,7 @@ defmodule BlazeCloud.Request do
 
     with {:ok, response} <- HTTPoison.post(url, body, headers),
          {:ok, json} <- parse_response(response),
-         do: {:ok, json}
+         do: {:ok, BlazeFile.from_json(json)}
   end
 
   def download_file(auth, file_id, range \\ []) do
@@ -74,8 +74,15 @@ defmodule BlazeCloud.Request do
 
   end
 
-  def get_file_info() do
+  @spec get_file_info(Auth.t, String.t) :: {:ok, BlazeFile.t} | {:error, String.t}
+  def get_file_info(auth, file_id) do
+    url = endpoint_url(auth, "b2_get_file_info")
+    body = Poison.encode!(%{"fileId" => file_id})
+    headers = put_header_token([], auth)
 
+    with {:ok, response} <- HTTPoison.post(url, body, headers),
+         {:ok, json} <- parse_response(response),
+         do: {:ok, BlazeFile.from_json(json)}
   end
 
   @spec get_upload_url(Auth.t, String.t) :: {:ok, UploadToken.t} | {:error, String.t}
@@ -181,4 +188,8 @@ defmodule BlazeCloud.Request do
         {:error, "Returned with status code: #{status_code}"}
     end
   end
+
+  defp create_bucket_type(:private), do: "allPrivate"
+  defp create_bucket_type(:public), do: "allPublic"
+
 end
