@@ -51,7 +51,15 @@ defmodule BlazeCloud.Request do
   end
 
   def delete_file_version(auth, file_name, file_id) do
+    url = endpoint_url auth, "b2_delete_file_version"
+    headers = put_header_token [], auth
+    body = Poison.encode!(%{
+      "fileName" => file_name,
+      "fileId" => file_id})
 
+    with {:ok, response} <- HTTPoison.post(url, body, headers),
+         {:ok, json} <- parse_response(response),
+         do: {:ok, json}
   end
 
   def download_file(auth, file_id, range \\ []) do
